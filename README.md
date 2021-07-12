@@ -1,4 +1,5 @@
 # Web system for 読影実験
+[![codecov](https://codecov.io/gh/yk-szk/dokueiexp/branch/main/graph/badge.svg?token=JE8QNVF5NI)](https://codecov.io/gh/yk-szk/dokueiexp)
 
 ## Dev Run
 
