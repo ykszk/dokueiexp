@@ -1,0 +1,23 @@
+<style>
+	td a {
+		text-decoration: none;
+	}
+</style>
+<table>
+	<thead>
+		<tr>
+			<td>症例</td>
+			<td>完了</td>
+			<td>読影</td>
+		</tr>
+	</thead>
+	<tbody>
+		{%- for case_id in case_ids %}
+		<tr>
+			<td>{{case_id}}</td>
+			<td>{{'✓' if records.get(case_id, False) else ''}}</td>
+			<td><a href="case/{{case_id}}">📝</a></td>
+		</tr>
+		{%- endfor %}
+	</tbody>
+</table>

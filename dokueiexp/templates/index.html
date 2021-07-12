@@ -1,0 +1,43 @@
+{%- extends "layout.html" %}
+
+{%- block topbar %}
+<div><a href="/">🏠</a> {{username}}</div>
+<div><a href='/logout'>ログアウト</a></div>
+{%- endblock %}
+
+{%- block main %}
+
+<style>
+       div.main {
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+       }
+
+
+       .login input {
+              margin: .5em;
+              padding: .5em;
+              display: block;
+       }
+
+       div.main {
+              min-height: 20%;
+       }
+
+       div.login {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+       }
+</style>
+
+
+{% include "flashes.html" %}
+
+<div class="main">
+       <div>進捗{{progress}}</div>
+       {% include "case_list.html" %}
+</div>
+{%- endblock %}

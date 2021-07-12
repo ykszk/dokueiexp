@@ -1,0 +1,202 @@
+body {
+	background: #112;
+	color: white;
+	padding: 0;
+	margin: 0;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+a:link {
+	color: #f44;
+}
+
+a:visited {
+	color: #944;
+}
+
+.container {
+	width: 100%;
+	flex-grow: 1;
+}
+
+.main {
+	padding: 1em 0 1em 0;
+	max-width: 960px;
+	margin: auto;
+}
+
+@media (max-width: 960px) {
+	.main {
+		padding: 0.5em;
+	}
+}
+
+.grid {
+	width: 100%;
+	display: grid;
+	grid-template-rows: auto 1fr;
+	align-items: center;
+	grid-template-columns: 2fr 8fr;
+}
+
+.grid label {
+	justify-self: center;
+}
+
+.topbar {
+	padding: .8em;
+	flex-shrink: 0;
+	background: #001;
+	position: sticky;
+	position: -webkit-sticky;
+	top: 0;
+}
+
+.header {
+	max-width: 1024px;
+	margin: auto;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+#case_id.completed::before {
+	content: "✓";
+}
+
+.footer {
+	padding: .8em;
+	text-align: center;
+	flex-shrink: 0;
+	background: #001;
+	position: sticky;
+	position: -webkit-sticky;
+	bottom: 0;
+}
+
+@media (min-width: 1000px) {
+	.main {
+		max-width: 960px;
+	}
+	.grid {
+		grid-template-columns: 2fr 8fr 2fr 8fr;
+		align-content: space-between;
+		justify-content: space-around;
+	}
+	.header {
+		max-width: 1100px;
+	}
+}
+
+input[type="range"] {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+input[type=range] {
+	-webkit-appearance: none;
+	appearance: none;
+	cursor: pointer;
+	/* background: #8acdff; */
+	height: 0.1em;
+	border: solid 1px #dff1ff;
+}
+
+div.label {
+	display: flex;
+	justify-content: space-between;
+	font-size: .8em;
+}
+
+.slider {
+	padding: 0;
+	margin: 0;
+	height: 2rem;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	background: no-repeat url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDEwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxnIHN0cm9rZT0iI2QzZDNkMyIgc3Ryb2tlLXdpZHRoPSIyIj48cGF0aCBkPSJNMSAwdjEwME01MDAgMHYxMDBNOTk5IDB2MTAwIi8+PC9nPjxnIHN0cm9rZT0iI2QzZDNkMyI+PHBhdGggZD0iTTI1MCAyNXY1ME03NTAgMjV2NTAiLz48L2c+PC9zdmc+);
+	background-size: 100% auto;
+}
+
+tbody tr:nth-child(even) {
+	background-color: #224;
+}
+
+thead tr {
+	background-color: #224;
+}
+
+table {
+	margin: auto;
+}
+
+tr td {
+	padding: 1em;
+	text-align: center;
+}
+
+/* flash messages */
+
+div.flashes {
+	width: 100%;
+}
+
+ul.flashes {
+	list-style-type: none;
+	margin: 0;
+	padding: .5em;
+}
+
+ul.flashes li {
+	padding: 1em;
+	border-radius: .2em;
+}
+
+.success {
+	border: solid 2px green;
+}
+
+.success::before {
+	content: "Success: ";
+}
+
+.failed {
+	border: solid 2px red;
+}
+
+.failed::before {
+	content: "Error: ";
+}
+
+.message {
+	border: solid 2px #558;
+}
+
+.message::before {
+	content: "Message: ";
+}
+
+/* Special styling for WebKit/Blink */
+
+input[type=range].notset::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	cursor: pointer;
+	background: transparent;
+	width: 1em;
+	height: 1em;
+	border-radius: 50%;
+}
+
+input[type="range"].notset::-moz-range-thumb {
+	-webkit-appearance: none;
+	cursor: pointer;
+	background: transparent;
+	width: 1em;
+	height: 1em;
+	border: none;
+	border-radius: 50%;
+}

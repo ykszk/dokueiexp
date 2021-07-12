@@ -1,0 +1,45 @@
+{%- extends "layout.html" %}
+
+{%- block topbar %}
+ログイン
+{%- endblock %}
+
+{%- block main %}
+
+<style>
+    div.main {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+
+    .login input {
+        margin: .5em;
+        padding: .5em;
+        display: block;
+    }
+
+    div.main {
+        min-height: 20%;
+    }
+
+    div.login {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+<div class="flashes">
+{% include "flashes.html" %}
+</div>
+<div class="login">
+    <form action="{{request.full_path}}" method='POST'>
+        <input type='text' name='username' id='username' placeholder='username' />
+        <input type='password' name='password' id='password' placeholder='password' />
+        <input type='submit' name='submit' value='ログイン' style='margin:auto' />
+    </form>
+</div>
+{%- endblock %}

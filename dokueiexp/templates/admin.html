@@ -1,0 +1,33 @@
+{%- extends "layout.html" %}
+
+{%- block topbar %}
+<div>Admin page</div>
+<div><a href='/logout'>ログアウト</a></div>
+{%- endblock %}
+
+{%- block main %}
+
+{% include "flashes.html" %}
+
+<div style="text-align: center;">
+       <a href='/admin/download/csv'>ダウンロードCSV</a>
+</div>
+<table>
+       <thead>
+              <tr>
+                     <td>ユーザー名</td>
+                     <td>進捗</td>
+                     <td>完了</td>
+              </tr>
+       </thead>
+       <tbody>
+              {%- for username, user_data in users_progress.items() %}
+              <tr>
+                     <td><a href=/user/{{username}}/>{{username}}</a></td>
+                     <td>{{user_data['progress']}}</td>
+                     <td>{{'✓' if user_data['completed'] else ''}}</td>
+              </tr>
+              {%- endfor %}
+       </tbody>
+</table>
+{%- endblock %}

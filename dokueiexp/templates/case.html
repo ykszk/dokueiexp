@@ -1,0 +1,25 @@
+{%- extends "layout.html" %}
+
+{%- block topbar %}
+<div>
+       <a href="/">🏠</a> {{username}}
+</div>
+
+<div id="case_id" class="{{'completed' if completed else ''}}">
+       {{case_id}}
+</div>
+{%- endblock %}
+
+{%- block main %}
+
+{% include "flashes.html" %}
+
+<div class="main">
+       {% include "sliders.html" %}
+</div>
+{%- endblock %}
+
+
+{%- block footer %}
+<a href="/">戻る</a>
+{%- endblock %}

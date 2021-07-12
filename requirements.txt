@@ -1,0 +1,6 @@
+flask
+flask-login
+pandas
+pre-commit
+pytest
+SQLAlchemy

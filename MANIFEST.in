@@ -1,0 +1,3 @@
+graft dokueiexp/static
+graft dokueiexp/templates
+global-exclude *.pyc

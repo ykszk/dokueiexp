@@ -1,0 +1,31 @@
+<html lang="ja">
+
+<head>
+       <meta charset="utf-8">
+       <meta name="viewport" content="width=device-width,initial-scale=1">
+       <meta name="theme-color" content="#fff">
+       <title>{{title}}</title>
+       <link rel="stylesheet" type="text/css" href="/static/default.css">
+</head>
+
+
+<body>
+
+       <div class="topbar">
+              <div class="header">
+              {%- block topbar %}{% endblock %}
+       </div>
+       </div>
+       <div class="container">
+              <div class="main">
+                     {%- block main %}{% endblock %}
+              </div>
+       </div>
+       {%- if self.footer() %}
+       <div class="footer">
+              {%- block footer %}{% endblock %}
+       </div>
+       {%- endif %}
+</body>
+
+</html>
