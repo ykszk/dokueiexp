@@ -75,21 +75,26 @@ def test_user(client):
                     }).encode('utf8'),
                     follow_redirects=True)
     assert b'success' in rv.data
+    assert 200 == rv.status_code
     rv = client.get('/case/Case001', follow_redirects=True)
     assert b'42' in rv.data
     assert b'class="completed"' not in rv.data
+    assert 200 == rv.status_code
     rv = client.put('/case/Case999',
                     data=json.dumps({
                         item_ids[0]: '42'
                     }).encode('utf8'),
                     follow_redirects=True)
     assert b'case_id not found' in rv.data
+    assert 404 == rv.status_code
 
     # set all
     rv = client.put('/case/Case001',
                     data=json.dumps({iid: '50'
                                      for iid in item_ids}).encode('utf8'),
                     follow_redirects=True)
+    assert 200 == rv.status_code
+
     assert b'success' in rv.data
     rv = client.get('/case/Case001', follow_redirects=True)
     assert b'class="completed"' in rv.data

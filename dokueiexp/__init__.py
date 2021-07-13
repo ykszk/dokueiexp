@@ -259,8 +259,11 @@ def create_app(test_config=None):
                     data_obj = record_data2obj(data)
                     db.update_record(username, case_id, data,
                                      len(data_obj) >= len(df_items), sess)
-                    return {'result': 'success'}
+                    return {'result': 'success'}, 200
             else:
-                return {'result': 'failure', 'reason': 'case_id not found'}
+                return {
+                    'result': 'failure',
+                    'reason': 'case_id not found'
+                }, 404
 
     return app
