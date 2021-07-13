@@ -2,6 +2,7 @@ import os
 import json
 from collections import namedtuple
 import tempfile
+from functools import wraps
 
 import flask
 from flask import render_template
@@ -84,22 +85,36 @@ def create_app(test_config=None):
     def record_data2obj(data):
         return json.loads(data.decode('utf8'))
 
-    def admin_only(func):
-        def wrapper(*args, **kwargs):
-            if flask_login.current_user.id != 'admin':
-                flask.flash('Admin only', 'failed')
-                return flask.redirect('/')
+    def admin_required(f):
+        '''
+        Use this decorator like below(the order matters.)
+            @login_required
+            @admin_required
+        '''
+        @wraps(f)
+        def wrap(*args, **kwargs):
+            if flask_login.current_user.id == "admin":
+                return f(*args, **kwargs)
             else:
-                return func(*args, **kwargs)
+                flask.abort(403, 'Admin only page.')
 
-        return wrapper
+        return wrap
+
+    @app.errorhandler(403)
+    def page_forbidden(e):
+        return render_template('error.html', title='403 Forbidden.',
+                               error=e), 403
+
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('error.html',
+                               title='404 Page not found',
+                               error=e), 404
 
     @app.route('/admin')
     @login_required
+    @admin_required
     def admin():
-        if flask_login.current_user.id != 'admin':
-            flask.flash('Admin only', 'failed')
-            return flask.redirect('/')
         users_progress = {}
         with db.new_session() as sess:
             for username in df_users['username']:
@@ -116,10 +131,8 @@ def create_app(test_config=None):
 
     @app.route('/admin/download/csv')
     @login_required
+    @admin_required
     def csv():
-        if flask_login.current_user.id != 'admin':
-            flask.flash('Admin only', 'failed')
-            return flask.redirect('/')
         with tempfile.NamedTemporaryFile(suffix='.csv') as temp:
             temp.close()
             with db.new_session() as sess:
@@ -130,10 +143,8 @@ def create_app(test_config=None):
 
     @app.route('/user/<username>/')
     @login_required
+    @admin_required
     def admin_user(username):
-        if flask_login.current_user.id != 'admin':
-            flask.flash('Admin only', 'failed')
-            return flask.redirect('/')
         if username not in users:
             flask.flash('User: {} not found.'.format(username), 'failed')
             return flask.redirect('/')
@@ -153,10 +164,8 @@ def create_app(test_config=None):
 
     @app.route('/user/<username>/case/<case_id>')
     @login_required
+    @admin_required
     def admin_user_case(username, case_id):
-        if flask_login.current_user.id != 'admin':
-            flask.flash('Admin only', 'failed')
-            return flask.redirect('/')
         if username not in users:
             flask.flash('User: {} not found.'.format(username), 'failed')
             return flask.redirect('/')
@@ -167,7 +176,8 @@ def create_app(test_config=None):
         if flask_login.current_user.is_authenticated:
             if flask_login.current_user.id == 'admin':
                 return flask.redirect('/admin')
-            return user_dashboard(flask_login.current_user.id)
+            else:
+                return user_dashboard(flask_login.current_user.id)
         else:
             return flask.redirect('/login')
 

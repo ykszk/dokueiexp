@@ -137,11 +137,15 @@ def test_admin(client):
     # check protection
     rv = client.get('/admin', follow_redirects=True)
     assert b'Please log in to access this page' in rv.data
+    assert 200 == rv.status_code
     rv = login(client, 'alice', 'alice')
     assert b'alice' in rv.data
     rv = client.get('/admin', follow_redirects=True)
     assert b'Admin only' in rv.data
+    assert 403 == rv.status_code
     rv = client.get('/user/alice/', follow_redirects=True)
     assert b'Admin only' in rv.data
+    assert 403 == rv.status_code
     rv = client.get('/user/alice/case/Case001', follow_redirects=True)
     assert b'Admin only' in rv.data
+    assert 403 == rv.status_code
