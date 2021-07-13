@@ -21,6 +21,7 @@ Optionally add `--host 0.0.0.0` to allow other devices
 ```sh
 pip install waitress .
 waitress-serve --call dokueiexp:create_app
+# or deploy.[bat,sh]
 ```
 ## Test
 ```sh
