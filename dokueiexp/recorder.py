@@ -1,14 +1,22 @@
+import json
+
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Boolean, String, DateTime
+from sqlalchemy import Column, Boolean, String, DateTime, Integer
 from sqlalchemy.dialects.mysql import TIMESTAMP as Timestamp
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.dialects import sqlite
+
 import datetime
 import pandas as pd
 
 from sqlalchemy.sql.functions import current_timestamp
 
 Base = declarative_base()
+
+
+def record_data2obj(data):
+    return json.loads(data.decode('utf8'))
 
 
 class RecordDB():
@@ -25,35 +33,54 @@ class RecordDB():
         username = Column(String(length=64), primary_key=True)
         case_id = Column(String(length=64), primary_key=True)
         data = Column(String(length=1024))
-        last_update = Column(DateTime(), default=datetime.datetime.utcnow())
+        elapsed_time = Column(Integer())
+        last_update = Column(DateTime())
+        ai = Column(Boolean(), primary_key=True)
         completed = Column(Boolean())
 
         def __init__(self, username: str, case_id: str, data: str,
-                     completed: bool):
+                     elapsed_time: int, ai: bool, completed: bool):
             self.username = username
             self.case_id = case_id
             self.data = data
+            self.ai = ai
             self.completed = completed
+            self.elapsed_time = elapsed_time
+            self.last_update = datetime.datetime.now()
 
         def to_dict(self):
+            data = record_data2obj(self.data)
             return dict(username=self.username,
                         case_id=self.case_id,
-                        data=self.data.decode('utf8'),
+                        ai=self.ai,
+                        last_update=self.last_update,
+                        elapsed_time=self.elapsed_time,
+                        data=data,
                         completed=self.completed)
 
-    def get_record(self, username, case_id, sess=None):
+    def get_record(self, username, case_id, ai, sess=None):
         if sess is None:
             sess = self.session
-        return sess.query(self.Record).get((username, case_id))
+        return sess.query(self.Record).get((username, case_id, ai))
 
-    def update_record(self, username, case_id, data, completed, sess=None):
+    def update_record(self,
+                      username: str,
+                      case_id: str,
+                      data: bytes,
+                      elapsed_time: int,
+                      ai: bool,
+                      completed: bool,
+                      sess=None):
         if sess is None:
             sess = self.session
-        record = self.Record(username, case_id, data, completed)
-        match = sess.query(self.Record).get((record.username, record.case_id))
+        record = self.Record(username, case_id, data, elapsed_time, ai,
+                             completed)
+        match = sess.query(self.Record).get(
+            (record.username, record.case_id, record.ai))
         if match:
-            match.last_update = datetime.datetime.utcnow()
+            match.last_update = datetime.datetime.now()
             match.data = record.data
+            match.elapsed_time = elapsed_time
             match.completed = record.completed
             sess.commit()
         else:
@@ -68,4 +95,4 @@ class RecordDB():
             rows.append(r.to_dict())
 
         df = pd.DataFrame(rows)
-        df.to_csv(filename, index=False)
+        df.to_csv(filename, index=False, encoding='cp932')

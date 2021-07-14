@@ -8,6 +8,9 @@ body {
 	flex-direction: column;
 }
 
+h3 {
+	margin: .2em;
+}
 a:link {
 	color: #f44;
 }
@@ -23,11 +26,11 @@ a:visited {
 
 .main {
 	padding: 1em 0 1em 0;
-	max-width: 960px;
+	max-width: 800px;
 	margin: auto;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 800px) {
 	.main {
 		padding: 0.5em;
 	}
@@ -38,8 +41,11 @@ a:visited {
 	display: grid;
 	grid-template-rows: auto 1fr;
 	align-items: center;
-	grid-template-columns: 2fr 8fr;
+	grid-template-columns: 2fr 1fr 7fr;
 }
+/* .grid.wAI {
+	grid-template-columns: 2fr 2fr 6fr;
+} */
 
 .grid label {
 	justify-self: center;
@@ -55,15 +61,11 @@ a:visited {
 }
 
 .header {
-	max-width: 1024px;
+	max-width: 800px;
 	margin: auto;
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
-}
-
-#case_id.completed::before {
-	content: "✓";
 }
 
 .footer {
@@ -76,18 +78,9 @@ a:visited {
 	bottom: 0;
 }
 
-@media (min-width: 1000px) {
-	.main {
-		max-width: 960px;
-	}
-	.grid {
-		grid-template-columns: 2fr 8fr 2fr 8fr;
-		align-content: space-between;
-		justify-content: space-around;
-	}
-	.header {
-		max-width: 1100px;
-	}
+input[type="number"] {
+	width: 4em;
+	text-align: center;
 }
 
 input[type="range"] {
@@ -104,13 +97,27 @@ input[type=range] {
 	height: 0.1em;
 	border: solid 1px #dff1ff;
 }
+.invalidValue {
+	background: red;
+}
+
+textarea {
+	width: 100%;
+	margin: .5em 0 .5em;
+	padding: .5em;
+	min-height: 10em;
+	font-size: 1.2em;
+}
 
 div.label {
 	display: flex;
 	justify-content: space-between;
 	font-size: .8em;
 }
-
+div.sliders {
+	padding: 0;
+	margin: 0;
+}
 .slider {
 	padding: 0;
 	margin: 0;
@@ -178,6 +185,19 @@ ul.flashes li {
 
 .message::before {
 	content: "Message: ";
+}
+
+button {
+	padding: .2em;
+	margin: .2em;
+}
+
+.noticeme {
+	background: #F55;
+}
+
+.noticeme:hover {
+	background: #F22;
 }
 
 /* Special styling for WebKit/Blink */

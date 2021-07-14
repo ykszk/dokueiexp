@@ -1,25 +1,84 @@
 {%- extends "layout.html" %}
-
 {%- block topbar %}
 <div>
-       <a href="/">🏠</a> {{username}}
+       <a id="backlink" href="/">🏠</a> {{username}}
 </div>
 
 <div id="case_id" class="{{'completed' if completed else ''}}">
        {{case_id}}
+       {%- if not read_only %}
+       <button id="checkButton" class="noticeme" onClick="handleCheckButton(this)">Check</button>
+       {%- endif %}
 </div>
+<div>⏱<span id="stopwatch"></span></div>
 {%- endblock %}
 
 {%- block main %}
+<script>
+       let elapsed_time = {{ elapsed_time }};
+       let startTime = Date.now();
+       function handleCheckButton(obj) {
+              obj.classList.remove("noticeme")
+              obj.disabled = true
+              obj.style.display = "none";
+              document.getElementById('backlink').style.display = "none";
+              const inputs = document.querySelectorAll('input');
+              inputs.forEach(e => e.disabled = false)
+              document.getElementById('quitButton').disabled = false
+              document.getElementById('diagnosis').disabled = false
+              updateFixButton()
+              startTime = Date.now();
+              setTime(elapsed_time);
+              setInterval(updateTime, 1000);
+       }
+
+       function updateTime() {
+              setTime(elapsed_time + Math.round((Date.now() - startTime) / 1000));
+       }
+       function setTime(secs) {
+              const delta = new Date(secs * 1000);
+              let time_str = delta.getUTCMinutes().toString().padStart(2, '0') + ":" + delta.getUTCSeconds().toString().padStart(2, '0');
+              if (delta.getUTCHours() > 0) {
+                     time_str = delta.getUTCHours().toString().padStart(2, '0') + ":" + time_str;
+              }
+              sw = document.getElementById("stopwatch")
+              sw.textContent = time_str
+       }
+       updateTime()
+
+       function handleFixButton() {
+              if (window.confirm("確定は取り消せません。本当に確定しますか。")) {
+                     sendData(location.href + '/fix', data => {
+                            window.location.href = '/'
+                     }, showAlert)
+              } else {
+                     alert("確定をキャンセルしました。")
+              }
+       }
+       function handleQuitButton() {
+              sendData(location.href, data => {
+                     window.location.href = '/'
+              }, showAlert)
+       }
+</script>
 
 {% include "flashes.html" %}
 
 <div class="main">
        {% include "sliders.html" %}
+       <div>
+              <h3>診断</h3>
+              <textarea id="diagnosis" disabled>{{data.get("diagnosis","")}}</textarea>
+       </div>
 </div>
 {%- endblock %}
 
 
 {%- block footer %}
+{%- if read_only %}
 <a href="/">戻る</a>
+{%- else %}
+<button disabled id="fixButton" onClick="handleFixButton()">確定</button>
+<button id="quitButton" disabled onClick="handleQuitButton()">一時保存</button>
+{%- endif %}
 {%- endblock %}

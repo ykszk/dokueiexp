@@ -1,11 +1,5 @@
-id,name,left,right
-item01,Item01,L,R
-item02,Item02,L,R
-item03,Item03,L,R
-item04,Item04,L,R
-item05,Item05,L,R
-item06,Item06,L,R
-item07,Item07,L,R
-item08,Item08,L,R
-item09,Item09,L,R
-item10,Item10,L,R
+id,name,left,right,group,allow_center
+item01,Item01,L,R,g1,TRUE
+item02,Item02,L,R,g2,TRUE
+item03,Item03,L,R,g2,FALSE
+item04,Item04,L,R,g3,FALSE

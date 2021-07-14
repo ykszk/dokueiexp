@@ -3,6 +3,7 @@ import json
 from collections import namedtuple
 import tempfile
 from functools import wraps
+from datetime import datetime, timedelta
 
 import flask
 from flask import render_template
@@ -11,14 +12,47 @@ from flask_login import login_required
 import pandas as pd
 from . import recorder
 
-Slider = namedtuple('Slider',
-                    ['label_id', 'label', 'label_left', 'label_right'])
+Slider = namedtuple(
+    'Slider',
+    ['label_id', 'label', 'label_left', 'label_right', 'allow_center'])
 
 
 class User(flask_login.UserMixin):
     def __init__(self, username):
         self.id = username
         self.username = username
+
+
+def admin_required(f):
+    '''
+    Use this decorator like below(the order matters.)
+        @login_required
+        @admin_required
+    '''
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if flask_login.current_user.id == "admin":
+            return f(*args, **kwargs)
+        else:
+            flask.abort(403, 'Admin only page.')
+
+    return wrap
+
+
+def nonadmin_required(f):
+    '''
+    Use this decorator like below(the order matters.)
+        @login_required
+        @nonadmin_required
+    '''
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if flask_login.current_user.id != "admin":
+            return f(*args, **kwargs)
+        else:
+            flask.abort(403, 'Invalid page for admin.')
+
+    return wrap
 
 
 def create_app(test_config=None):
@@ -29,6 +63,8 @@ def create_app(test_config=None):
         USERS_CSV=os.environ.get('USERS_CSV', 'users.csv'),
         CASE_IDS_TXT=os.environ.get('CASE_IDS_TXT', 'case_ids.txt'),
         ITEMS_CSV=os.environ.get('ITEMS_CSV', 'items.csv'),
+        REF_DATA_CSV=os.environ.get('REF_DATA_CSV', 'reference.csv'),
+        INTERVAL=os.environ.get('INTERVAL', '1'),
         RECORD_DB=os.environ.get('RECORD_DB', 'sqlite:///records.sqlite3'))
 
     if test_config is None:
@@ -37,6 +73,8 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     os.makedirs(app.instance_path, exist_ok=True)
+    MIN_DELTA = timedelta(minutes=int(app.config['INTERVAL']))
+    print('interval', MIN_DELTA)
 
     login_manager = flask_login.LoginManager()
     login_manager.init_app(app)
@@ -52,13 +90,26 @@ def create_app(test_config=None):
     print(len(users), 'users found.')
     with open(app.config['CASE_IDS_TXT']) as f:
         case_ids = f.read().splitlines()
-        case_ids_set = set(case_ids)
+    case_ids_set = set(case_ids)
 
     df_items = pd.read_csv(app.config['ITEMS_CSV'], encoding='cp932')
     print(len(df_items), 'items found.')
-    sliders = df_items.apply(lambda row: Slider(row.get('id'), row.get('name'),
-                                                row.left, row.right),
-                             axis=1)
+    slider_groups = {}
+    for group, df_group in df_items.groupby('group'):
+        slider_groups[group] = df_group.apply(
+            lambda row: Slider(row.get('id'), row.get('name'), row.left, row.
+                               right, row.allow_center),
+            axis=1)
+
+    df_ref = pd.read_csv(app.config['REF_DATA_CSV'],
+                         index_col='id',
+                         encoding='cp932')
+    assert set(df_ref.index) == case_ids_set, 'Invalid input'
+    assert set(df_ref.columns) == set(df_items['id'].values), 'Invalid input'
+
+    ref_dict = {}
+    for case_id in df_ref.index:
+        ref_dict[case_id] = df_ref.loc[case_id].to_dict()
 
     db = recorder.RecordDB(app.config['RECORD_DB'], False)
 
@@ -82,23 +133,8 @@ def create_app(test_config=None):
 
         return user
 
-    def record_data2obj(data):
-        return json.loads(data.decode('utf8'))
-
-    def admin_required(f):
-        '''
-        Use this decorator like below(the order matters.)
-            @login_required
-            @admin_required
-        '''
-        @wraps(f)
-        def wrap(*args, **kwargs):
-            if flask_login.current_user.id == "admin":
-                return f(*args, **kwargs)
-            else:
-                flask.abort(403, 'Admin only page.')
-
-        return wrap
+    def obj2bytes(obj):
+        return json.dumps(obj).encode('utf8')
 
     @app.errorhandler(403)
     def page_forbidden(e):
@@ -123,8 +159,9 @@ def create_app(test_config=None):
                 matches = sess.query(db.Record).filter_by(username=username,
                                                           completed=True)
                 progress = matches.count()
-                users_progress[username] = dict(
-                    progress=progress, completed=progress == len(case_ids))
+                users_progress[username] = dict(progress=progress,
+                                                completed=progress == 2 *
+                                                len(case_ids))
         return render_template('admin.html',
                                title='Admin page',
                                users_progress=users_progress)
@@ -152,24 +189,33 @@ def create_app(test_config=None):
 
     def user_dashboard(username, title='ダッシュボード'):
         with db.new_session() as sess:
-            recs = sess.query(db.Record).filter_by(username=username)
-            rec_dict = {r.case_id: r.completed for r in recs}
-            n_done = sum([1 for r in rec_dict.values() if r])
+            recs = sess.query(db.Record).filter_by(username=username, ai=False)
+            rec_dict = {r.case_id: r for r in recs}
+            n_done = sum([1 for r in rec_dict.values() if r.completed])
+            ai_recs = sess.query(db.Record).filter_by(username=username,
+                                                      ai=True)
+            ai_rec_dict = {r.case_id: r for r in ai_recs}
+            ai_n_done = sum([1 for r in ai_rec_dict.values() if r.completed])
         return render_template('index.html',
                                title=title,
                                username=username,
                                case_ids=case_ids,
-                               progress='{}/{}'.format(n_done, len(case_ids)),
-                               records=rec_dict)
+                               progress='{}/{}, {}/{}'.format(
+                                   n_done, len(case_ids), ai_n_done,
+                                   len(case_ids)),
+                               records=rec_dict,
+                               ai_records=ai_rec_dict,
+                               now=datetime.now(),
+                               min_delta=MIN_DELTA)
 
-    @app.route('/user/<username>/case/<case_id>')
+    @app.route('/user/<username>/<w_wo>/case/<case_id>')
     @login_required
     @admin_required
-    def admin_user_case(username, case_id):
+    def admin_user_case(username, case_id, w_wo):
         if username not in users:
             flask.flash('User: {} not found.'.format(username), 'failed')
             return flask.redirect('/')
-        return render_case(username, case_id, True)
+        return render_case(username, case_id, w_wo == 'w', True)
 
     @app.route('/', methods=['GET'])
     def root():
@@ -218,52 +264,90 @@ def create_app(test_config=None):
         flask.flash(username + ' logged out.', 'success')
         return flask.redirect('/')
 
-    def render_case(username, case_id, read_only=False):
+    def render_case(username, case_id, ai, read_only=False):
         '''
         read_only for admin view
         '''
         if case_id in case_ids_set:
+            if ai:  # to edit w/ ai, w/o ai needs to be completed
+                with db.new_session() as sess:
+                    wo_rec = db.get_record(username, case_id, False, sess)
+                if (not wo_rec) or (wo_rec and not wo_rec.completed):
+                    flask.flash('{}はまだ読影できません。'.format(case_id), 'failed')
+                    return flask.redirect('/')
+
             with db.new_session() as sess:
-                rec = db.get_record(username, case_id, sess)
+                rec = db.get_record(username, case_id, ai, sess)
             if rec:
                 data = json.loads(rec.data.decode('utf8'))
                 completed = rec.completed
+                if completed:
+                    flask.flash('{}はすでに確定しています。'.format(case_id), 'failed')
+                    return flask.redirect('/')
+                elapsed_time = rec.elapsed_time
             else:
                 data = {}
                 completed = False
+                elapsed_time = 0
+            if ai:
+                ref_data = ref_dict[case_id]
+            else:
+                ref_data = {}
             return render_template('case.html',
                                    title=case_id,
                                    username=username,
                                    case_id=case_id,
                                    completed=completed,
-                                   sliders=sliders,
+                                   elapsed_time=elapsed_time,
+                                   slider_groups=slider_groups,
+                                   ref_data=ref_data,
                                    data=data,
                                    read_only=read_only)
         else:
             flask.flash('Case "{}" not found.'.format(case_id), 'failed')
             return flask.redirect('/')
 
-    @app.route('/case/<case_id>', methods=['GET', 'PUT'])
+    @app.route('/<w_wo>/case/<case_id>', methods=['GET', 'PUT'])
     @login_required
-    def case(case_id):
+    @nonadmin_required
+    def case(case_id, w_wo):
+        is_ai = w_wo == 'w'
         username = flask_login.current_user.id
-        if username == 'admin':
-            flask.flash('Invalid page for admin', 'failed')
-            return flask.redirect('/')
         if flask.request.method == 'GET':
-            return render_case(username, case_id)
+            return render_case(username, case_id, is_ai)
         else:
             if case_id in case_ids:
                 with db.new_session() as sess:
-                    data = flask.request.get_data()
-                    data_obj = record_data2obj(data)
-                    db.update_record(username, case_id, data,
-                                     len(data_obj) >= len(df_items), sess)
+                    data = recorder.record_data2obj(flask.request.get_data())
+                    et = data.pop('elapsed_time', 0)
+                    data = obj2bytes(data)
+                    db.update_record(username, case_id, data, et, is_ai, False,
+                                     sess)
                     return {'result': 'success'}, 200
             else:
                 return {
                     'result': 'failure',
                     'reason': 'case_id not found'
                 }, 404
+
+    @app.route('/<w_wo>/case/<case_id>/fix', methods=['PUT'])
+    @login_required
+    @nonadmin_required
+    def fix_case(case_id, w_wo):
+        is_ai = w_wo == 'w'
+        username = flask_login.current_user.id
+        if case_id in case_ids:
+            with db.new_session() as sess:
+                data = recorder.record_data2obj(flask.request.get_data())
+                et = data.pop('elapsed_time', 0)
+                data = obj2bytes(data)
+                db.update_record(username, case_id, data, et, is_ai, True,
+                                 sess)
+                if not is_ai:  # copy to ai
+                    db.update_record(username, case_id, data, 0, True, False,
+                                     sess)
+                return {'result': 'success'}, 200
+        else:
+            return {'result': 'failure', 'reason': 'case_id not found'}, 404
 
     return app

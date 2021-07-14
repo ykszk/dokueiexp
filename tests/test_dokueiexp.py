@@ -11,18 +11,18 @@ ITEMS_CSV = 'tests/items.csv'
 
 @pytest.fixture
 def client():
-    db_fd, db_filename = tempfile.mkstemp(suffix='.sqlite3')
-    config = dict(USERS_CSV='tests/users.csv',
-                  CASE_IDS_TXT='tests/case_ids.txt',
-                  ITEMS_CSV=ITEMS_CSV,
-                  RECORD_DB='sqlite:///{}'.format(db_filename))
-    app = dokueiexp.create_app(config)
+    with tempfile.NamedTemporaryFile() as temp:
+        temp.close()
+        db_filename = temp.name
+        config = dict(USERS_CSV='tests/users.csv',
+                      CASE_IDS_TXT='tests/case_ids.txt',
+                      ITEMS_CSV=ITEMS_CSV,
+                      REF_DATA_CSV='tests/reference.csv',
+                      RECORD_DB='sqlite:///{}'.format(db_filename))
+        app = dokueiexp.create_app(config)
 
-    with app.test_client() as client:
-        yield client
-
-    os.close(db_fd)
-    os.unlink(db_filename)
+        with app.test_client() as client:
+            yield client
 
 
 def login(client, username, password):
@@ -55,7 +55,7 @@ def test_user(client):
     rv = login(client, 'alice', 'alice')
     assert b'alice' in rv.data
 
-    rv = client.get('/case/Case001', follow_redirects=True)
+    rv = client.get('/wo/case/Case001', follow_redirects=True)
     assert b'Case001' in rv.data
     assert b'Item01' in rv.data
     assert b'class="notset"' in rv.data
@@ -65,22 +65,23 @@ def test_user(client):
     # check recording
     # check progress
     rv = client.get('/', follow_redirects=True)
-    assert b'0/10' in rv.data
-    assert '✓'.encode('utf8') not in rv.data
+    assert b'0/4' in rv.data
+    assert '未'.encode('utf8') in rv.data
+    assert '完了'.encode('utf8') not in rv.data
 
     # set one
-    rv = client.put('/case/Case001',
+    rv = client.put('/wo/case/Case001',
                     data=json.dumps({
                         item_ids[0]: '42'
                     }).encode('utf8'),
                     follow_redirects=True)
     assert b'success' in rv.data
     assert 200 == rv.status_code
-    rv = client.get('/case/Case001', follow_redirects=True)
+    rv = client.get('/wo/case/Case001', follow_redirects=True)
     assert b'42' in rv.data
     assert b'class="completed"' not in rv.data
     assert 200 == rv.status_code
-    rv = client.put('/case/Case999',
+    rv = client.put('/wo/case/Case999',
                     data=json.dumps({
                         item_ids[0]: '42'
                     }).encode('utf8'),
@@ -89,27 +90,44 @@ def test_user(client):
     assert 404 == rv.status_code
 
     # set all
-    rv = client.put('/case/Case001',
+    rv = client.put('/wo/case/Case001',
                     data=json.dumps({iid: '50'
                                      for iid in item_ids}).encode('utf8'),
                     follow_redirects=True)
     assert 200 == rv.status_code
-
     assert b'success' in rv.data
-    rv = client.get('/case/Case001', follow_redirects=True)
-    assert b'class="completed"' in rv.data
+
+    rv = client.get('/wo/case/Case001', follow_redirects=True)
     assert b'class="notset"' not in rv.data
+
+    rv = client.get('/w/case/Case001', follow_redirects=True)
+    assert 'はまだ読影できません。'.encode('utf8') in rv.data
+
+    # fix
+    rv = client.put('/wo/case/Case001/fix',
+                    data=json.dumps({iid: '50'
+                                     for iid in item_ids}).encode('utf8'),
+                    follow_redirects=True)
+    assert 200 == rv.status_code
+    assert b'success' in rv.data
+
+    rv = client.get('/w/case/Case001', follow_redirects=True)
+    assert '一時保存'.encode('utf8') in rv.data
 
     # check progress
     rv = client.get('/', follow_redirects=True)
-    assert b'1/10' in rv.data
-    assert '✓'.encode('utf8') in rv.data
+    assert b'1/4, 0/4' in rv.data
+    assert '未'.encode('utf8') in rv.data
+    assert '完了'.encode('utf8') in rv.data
+
+    rv = client.get('/wo/case/Case001', follow_redirects=True)
+    assert 'すでに確定しています。'.encode('utf8') in rv.data
 
     rv = logout(client)
 
     # check protection
     assert b'logged out' in rv.data
-    rv = client.put('/case/Case001',
+    rv = client.put('/wo/case/Case001',
                     data=json.dumps({
                         item_ids[0]: '42'
                     }).encode('utf8'),
@@ -123,18 +141,26 @@ def test_admin(client):
     assert b'alice' in rv.data
     assert b'bob' in rv.data
 
-    rv = client.get('/case/Case001', follow_redirects=True)
+    rv = client.get('/wo/case/Case001', follow_redirects=True)
     assert b'Invalid page for admin' in rv.data
+
+    for url in [
+            '/wo/case/Case001', '/w/case/Case001', '/wo/case/Case001/fix',
+            '/w/case/Case001/fix'
+    ]:
+        rv = client.put(url, follow_redirects=True)
+        assert b'Invalid page for admin' in rv.data
+        assert 403 == rv.status_code
 
     rv = client.get('/user/alice/', follow_redirects=True)
     assert b'alice' in rv.data
     assert b'Case001' in rv.data
-    assert b'Case010' in rv.data
+    assert b'Case004' in rv.data
 
-    rv = client.get('/user/alice/case/Case001', follow_redirects=True)
+    rv = client.get('/user/alice/wo/case/Case001', follow_redirects=True)
     assert b'alice' in rv.data
     assert b'Case001' in rv.data
-    assert b'Case010' not in rv.data
+    assert b'Case004' not in rv.data
 
     rv = logout(client)
     assert b'logged out' in rv.data
@@ -151,6 +177,6 @@ def test_admin(client):
     rv = client.get('/user/alice/', follow_redirects=True)
     assert b'Admin only' in rv.data
     assert 403 == rv.status_code
-    rv = client.get('/user/alice/case/Case001', follow_redirects=True)
+    rv = client.get('/user/alice/wo/case/Case001', follow_redirects=True)
     assert b'Admin only' in rv.data
     assert 403 == rv.status_code

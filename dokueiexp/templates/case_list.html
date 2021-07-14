@@ -7,16 +7,41 @@
 	<thead>
 		<tr>
 			<td>症例</td>
-			<td>完了</td>
+			<td>状態</td>
 			<td>読影</td>
+			<td>更新日時</td>
+			<td>w/ AI 状態</td>
+			<td>w/ AI 読影</td>
+			<td>w/ AI 更新日時</td>
 		</tr>
 	</thead>
 	<tbody>
 		{%- for case_id in case_ids %}
 		<tr>
 			<td>{{case_id}}</td>
-			<td>{{'✓' if records.get(case_id, False) else ''}}</td>
-			<td><a href="case/{{case_id}}">📝</a></td>
+			{%- set status = (2 if records[case_id].completed else 1) if case_id in records else 0 -%}
+			<td>{{['未','一時保存','完了'][status]}}</td>
+			<td>{%- if status < 2 %} <a href="wo/case/{{case_id}}">✍️</a>{%- endif %}</td>
+			<td>{{records[case_id].last_update.strftime('%Y/%m/%d %H:%M') if case_id in records else ''}}
+			</td>
+
+			{%- set ai_updated = case_id in records and case_id in ai_records and
+			(ai_records[case_id].last_update-records[case_id].last_update).total_seconds() > 5 -%}
+			{%- set ai_status = (2 if ai_records[case_id].completed else 1) if case_id in ai_records and
+			ai_updated else 0
+			-%}
+			<td>{{['未','一時保存','完了'][ai_status]}}</td>
+			<td>{%- if status==2 and ai_status < 2 %} {%- if case_id in records and case_id in ai_records
+					and (now-records[case_id].last_update)> min_delta%}
+					<a href="w/case/{{case_id}}">✍️</a>
+					{%- else %}
+					待
+					{%- endif %}
+					{%- endif %}</td>
+			<td>{{ai_records[case_id].last_update.strftime('%Y/%m/%d %H:%M') if case_id in ai_records and
+				ai_updated
+				else '' }} </td>
+
 		</tr>
 		{%- endfor %}
 	</tbody>
