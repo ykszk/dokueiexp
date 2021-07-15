@@ -25,8 +25,7 @@
 			<td>{{records[case_id].last_update.strftime('%Y/%m/%d %H:%M') if case_id in records else ''}}
 			</td>
 
-			{%- set ai_updated = case_id in records and case_id in ai_records and
-			(ai_records[case_id].last_update-records[case_id].last_update).total_seconds() > 5 -%}
+			{%- set ai_updated = case_id in records and case_id in ai_records and ai_records[case_id].elapsed_time > 0 -%}
 			{%- set ai_status = (2 if ai_records[case_id].completed else 1) if case_id in ai_records and
 			ai_updated else 0
 			-%}

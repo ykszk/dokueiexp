@@ -55,7 +55,7 @@ class RecordDB():
                         ai=self.ai,
                         last_update=self.last_update,
                         elapsed_time=self.elapsed_time,
-                        data=data,
+                        data=json.dumps(data),
                         completed=self.completed)
 
     def get_record(self, username, case_id, ai, sess=None):

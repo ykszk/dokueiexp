@@ -9,15 +9,6 @@
        function showAlert(error) {
               alert(error);
        }
-
-       function handleNumChange(obj) {
-              const slider = document.getElementById(obj.id.substring(4));
-              if (slider.value != obj.value) {
-                     slider.value = obj.value
-                     handleChange(slider)
-              }
-       }
-
        function sendData(url, successCallback, failureCallback) {
               const sliders = document.querySelectorAll('.slider input');
               const values = {}
@@ -60,10 +51,6 @@
                      // do nothing
                      return
               }
-              const num_input = document.getElementById("num_" + obj.id)
-              if (num_input.value != obj.value) {
-                     num_input.value = obj.value
-              }
 
               if (obj.hasAttribute("data-nocenter") && obj.value == (obj.min + obj.max) / 2) {
                      obj.parentElement.parentElement.parentElement.classList.add('invalidValue')
@@ -89,10 +76,6 @@
               <div style="margin:0 .5em 0 .5em;">{{ref_data.get(slider.label_id,'')}}</div>
               <div style="margin-top:1em;">
                      <div class="label"><span>{{slider.label_left}}</span>
-                            <input type="number" id="num_{{slider.label_id}}" min="0" max="100" {%- if slider.label_id
-                                   in data %} value={{data[slider.label_id]}} {%- endif %} {%- if not
-                                   slider.allow_center %} data-nocenter {%- endif %} onChange="handleNumChange(this)"
-                                   disabled>
                             <span>{{slider.label_right}}</span>
                      </div>
                      <div class="slider">

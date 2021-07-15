@@ -269,10 +269,12 @@ def create_app(test_config=None):
         read_only for admin view
         '''
         if case_id in case_ids_set:
-            if ai:  # to edit w/ ai, w/o ai needs to be completed
+            if ai:  # to edit w/ ai, w/o ai needs to be completed and MIN_DELTA
                 with db.new_session() as sess:
                     wo_rec = db.get_record(username, case_id, False, sess)
-                if (not wo_rec) or (wo_rec and not wo_rec.completed):
+                if (not wo_rec) or (wo_rec and not wo_rec.completed) or (
+                        wo_rec and
+                    (datetime.now() - wo_rec.last_update < MIN_DELTA)):
                     flask.flash('{}はまだ読影できません。'.format(case_id), 'failed')
                     return flask.redirect('/')
 
