@@ -99,6 +99,7 @@ def test_user(client):
 
     rv = client.get('/wo/case/Case001', follow_redirects=True)
     assert b'class="notset"' not in rv.data
+    assert '一時保存'.encode('utf8') in rv.data
 
     rv = client.get('/w/case/Case001', follow_redirects=True)
     assert 'はまだ読影できません。'.encode('utf8') in rv.data
@@ -112,7 +113,7 @@ def test_user(client):
     assert b'success' in rv.data
 
     rv = client.get('/w/case/Case001', follow_redirects=True)
-    assert '一時保存'.encode('utf8') in rv.data
+    assert '一時保存'.encode('utf8') not in rv.data
 
     # check progress
     rv = client.get('/', follow_redirects=True)
