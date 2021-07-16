@@ -8,9 +8,15 @@ body {
 	flex-direction: column;
 }
 
+div {
+	margin: 0;
+	padding: 0;
+}
+
 h3 {
 	margin: .2em;
 }
+
 a:link {
 	color: #f44;
 }
@@ -43,9 +49,6 @@ a:visited {
 	align-items: center;
 	grid-template-columns: 2fr 1fr 7fr;
 }
-/* .grid.wAI {
-	grid-template-columns: 2fr 2fr 6fr;
-} */
 
 .grid label {
 	justify-self: center;
@@ -78,13 +81,24 @@ a:visited {
 	bottom: 0;
 }
 
-input[type="number"] {
-	width: 4em;
-	text-align: center;
+#checkButton {
+	padding: 0 .5em 0 .5em;
+	margin: 0 .5em 0 .5em;
+	color: white;
+	font-size: 1em;
+	border: none;
+}
+
+#checkButton {
+	background: #F22;
+}
+
+#checkButton:hover {
+	color: #113;
 }
 
 input[type="range"] {
-	width: 100%;
+	width: 110%;
 	margin: 0;
 	padding: 0;
 }
@@ -93,10 +107,10 @@ input[type=range] {
 	-webkit-appearance: none;
 	appearance: none;
 	cursor: pointer;
-	/* background: #8acdff; */
-	height: 0.1em;
-	border: solid 1px #dff1ff;
+	background: #dff1ff;
+	height: .4em;
 }
+
 .invalidValue {
 	background: red;
 }
@@ -114,10 +128,7 @@ div.label {
 	justify-content: space-between;
 	font-size: .8em;
 }
-div.sliders {
-	padding: 0;
-	margin: 0;
-}
+
 .slider {
 	padding: 0;
 	margin: 0;
@@ -190,17 +201,10 @@ ul.flashes li {
 button {
 	padding: .2em;
 	margin: .2em;
+	border-radius: .1em;
 }
 
-.noticeme {
-	background: #F55;
-}
-
-.noticeme:hover {
-	background: #F22;
-}
-
-/* Special styling for WebKit/Blink */
+/* Initial slider */
 
 input[type=range].notset::-webkit-slider-thumb {
 	-webkit-appearance: none;
@@ -208,6 +212,7 @@ input[type=range].notset::-webkit-slider-thumb {
 	background: transparent;
 	width: 1em;
 	height: 1em;
+	border: none;
 	border-radius: 50%;
 }
 

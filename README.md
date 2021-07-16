@@ -20,7 +20,7 @@ waitress-serve --call dokueiexp:create_app
 - REF_DATA_CSV : filename
 - RECORD_DB : filename. e.g `sqlite:///records.sqlite3`
 
-#### Files
+### Files
 - USERS_CSV: csv file with username and password columns. Note that `admin` user is required.
 - CASE_IDS_TXT: text file with case IDs.
 - ITEMS_CSV: csv with the following columns.
