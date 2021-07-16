@@ -3,14 +3,10 @@ import json
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Boolean, String, DateTime, Integer
-from sqlalchemy.dialects.mysql import TIMESTAMP as Timestamp
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.dialects import sqlite
 
 import datetime
 import pandas as pd
-
-from sqlalchemy.sql.functions import current_timestamp
 
 Base = declarative_base()
 

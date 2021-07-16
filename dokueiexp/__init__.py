@@ -59,7 +59,6 @@ def create_app(test_config=None):
     app = flask.Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
-        DATABASE=os.path.join(app.instance_path, 'dokuei.sqlite3'),
         USERS_CSV=os.environ.get('USERS_CSV', 'users.csv'),
         CASE_IDS_TXT=os.environ.get('CASE_IDS_TXT', 'case_ids.txt'),
         ITEMS_CSV=os.environ.get('ITEMS_CSV', 'items.csv'),
@@ -73,7 +72,8 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     os.makedirs(app.instance_path, exist_ok=True)
-    MIN_DELTA = timedelta(minutes=int(app.config['INTERVAL']))
+
+    MIN_DELTA = timedelta(minutes=float(app.config['INTERVAL']))
     print('interval', MIN_DELTA)
 
     login_manager = flask_login.LoginManager()

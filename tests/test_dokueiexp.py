@@ -1,12 +1,14 @@
 import os
 import tempfile
 import json
+import time
 
 import pytest
 import pandas as pd
 import dokueiexp
 
 ITEMS_CSV = 'tests/items.csv'
+INTERVAL_SEC = 2
 
 
 @pytest.fixture
@@ -18,6 +20,7 @@ def client():
                       CASE_IDS_TXT='tests/case_ids.txt',
                       ITEMS_CSV=ITEMS_CSV,
                       REF_DATA_CSV='tests/reference.csv',
+                      INTERVAL=str(INTERVAL_SEC / 60),
                       RECORD_DB='sqlite:///{}'.format(db_filename))
         app = dokueiexp.create_app(config)
 
@@ -62,7 +65,7 @@ def test_user(client):
 
     df_items = pd.read_csv(ITEMS_CSV, encoding='cp932')
     item_ids = df_items['id'].to_list()
-    # check recording
+
     # check progress
     rv = client.get('/', follow_redirects=True)
     assert b'0/4' in rv.data
@@ -112,10 +115,19 @@ def test_user(client):
     assert 200 == rv.status_code
     assert b'success' in rv.data
 
-    rv = client.get('/w/case/Case001', follow_redirects=True)
-    assert '一時保存'.encode('utf8') not in rv.data
+    # test the interval
+    rv = client.get('/', follow_redirects=True)
+    assert '待'.encode('utf8') in rv.data
 
-    # check progress
+    rv = client.get('/w/case/Case001', follow_redirects=True)
+    assert 'はまだ読影できません。'.encode('utf8') in rv.data
+
+    time.sleep(INTERVAL_SEC)
+    rv = client.get('/w/case/Case001', follow_redirects=True)
+    assert b'class="notset"' not in rv.data
+    assert '一時保存'.encode('utf8') in rv.data
+
+    # test progress
     rv = client.get('/', follow_redirects=True)
     assert b'1/4, 0/4' in rv.data
     assert '未'.encode('utf8') in rv.data
