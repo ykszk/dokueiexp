@@ -7,7 +7,7 @@
 <div id="case_id" class="{{'completed' if completed else ''}}">
        {{case_id}}
        {%- if not read_only %}
-       <button id="checkButton"class="noticeme" onClick="handleCheckButton(this)">Check</button>
+       <button id="checkButton" class="noticeme" onClick="handleCheckButton(this)">Check</button>
        {%- endif %}
 </div>
 <div>⏱<span id="stopwatch"></span></div>
@@ -17,6 +17,13 @@
 <script>
        let elapsed_time = {{ elapsed_time }};
        let startTime = Date.now();
+
+       function handlePageUnload(event) {
+              // show a confirmation dialog
+              event.preventDefault();
+              event.returnValue = '';
+       }
+
        function handleCheckButton(obj) {
               obj.classList.remove("noticeme")
               obj.disabled = true
@@ -30,6 +37,7 @@
               startTime = Date.now();
               setTime(elapsed_time);
               setInterval(updateTime, 1000);
+              window.addEventListener('beforeunload', handlePageUnload);
        }
 
        function updateTime() {
@@ -49,6 +57,7 @@
        function handleFixButton() {
               if (window.confirm("確定は取り消せません。本当に確定しますか。")) {
                      sendData(location.href + '/fix', data => {
+                            window.removeEventListener("beforeunload", handlePageUnload);
                             window.location.href = '/'
                      }, showAlert)
               } else {
@@ -57,6 +66,7 @@
        }
        function handleQuitButton() {
               sendData(location.href, data => {
+                     window.removeEventListener("beforeunload", handlePageUnload);
                      window.location.href = '/'
               }, showAlert)
        }
