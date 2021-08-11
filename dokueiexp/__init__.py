@@ -20,7 +20,6 @@ Slider = namedtuple(
 class User(flask_login.UserMixin):
     def __init__(self, username):
         self.id = username
-        self.username = username
 
 
 def admin_required(f):
@@ -259,7 +258,7 @@ def create_app(test_config=None):
     @app.route('/logout')
     @login_required
     def logout():
-        username = flask_login.current_user.username
+        username = flask_login.current_user.id
         flask_login.logout_user()
         flask.flash(username + ' logged out.', 'success')
         return flask.redirect('/')

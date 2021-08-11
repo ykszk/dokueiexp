@@ -22,7 +22,7 @@
 			{%- set status = (2 if records[case_id].completed else 1) if case_id in records else 0 -%}
 			<td>{{['未','一時保存','完了'][status]}}</td>
 			<td>{%- if status < 2 %} <a href="wo/case/{{case_id}}">✍️</a>{%- endif %}</td>
-			<td>{{records[case_id].last_update.strftime('%Y/%m/%d %H:%M') if case_id in records else ''}}
+			<td>{{records[case_id].last_update.strftime('%m/%d %H:%M') if case_id in records else ''}}
 			</td>
 
 			{%- set ai_updated = case_id in records and case_id in ai_records and ai_records[case_id].elapsed_time > 0 -%}

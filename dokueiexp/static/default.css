@@ -98,7 +98,7 @@ a:visited {
 }
 
 input[type="range"] {
-	width: 110%;
+	width: 100%;
 	margin: 0;
 	padding: 0;
 }
