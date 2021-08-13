@@ -94,7 +94,7 @@ def create_app(test_config=None):
     df_items = pd.read_csv(app.config['ITEMS_CSV'], encoding='cp932')
     print(len(df_items), 'items found.')
     slider_groups = {}
-    for group, df_group in df_items.groupby('group'):
+    for group, df_group in df_items.groupby('group', sort=False):
         slider_groups[group] = df_group.apply(
             lambda row: Slider(row.get('id'), row.get('name'), row.left, row.
                                right, row.allow_center),
