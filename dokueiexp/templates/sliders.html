@@ -15,7 +15,15 @@
               const dones = Array.from(sliders).filter(e => !e.classList.contains('notset'));
               dones.forEach(e => values[e.id] = e.value)
               values['elapsed_time'] = elapsed_time + Math.round((Date.now() - startTime) / 1000);
-              values['diagnosis'] = document.getElementById('diagnosis').value
+              let diagnosis = document.getElementById('diagnosis1').value;
+              const delim = "|"
+              for (const i of [2, 3, 4, 5]) {
+                     d = document.getElementById('diagnosis' + String(i)).value
+                     if (d != '') {
+                            diagnosis += delim + d
+                     }
+              }
+              values['diagnosis'] = diagnosis
               async function putData(url = '', data = {}) {
                      const response = await fetch(url, {
                             method: 'PUT',
@@ -43,6 +51,7 @@
               const n_dones = dones.length;
               if (n_all == n_dones) {
                      document.getElementById("fixButton").disabled = false
+                     document.getElementById('stopTimerButton').disabled = false
               }
        }
 

@@ -279,6 +279,7 @@ def create_app(test_config=None):
 
             with db.new_session() as sess:
                 rec = db.get_record(username, case_id, ai, sess)
+            diagnoses = ['', '', '', '', '']
             if rec:
                 data = json.loads(rec.data.decode('utf8'))
                 completed = rec.completed
@@ -286,6 +287,10 @@ def create_app(test_config=None):
                     flask.flash('{}はすでに確定しています。'.format(case_id), 'failed')
                     return flask.redirect('/')
                 elapsed_time = rec.elapsed_time
+                if 'diagnosis' in data:
+                    ds = data['diagnosis'].split('|')
+                    for i in range(len(ds)):
+                        diagnoses[i] = ds[i]
             else:
                 data = {}
                 completed = False
@@ -294,6 +299,7 @@ def create_app(test_config=None):
                 ref_data = ref_dict[case_id]
             else:
                 ref_data = {}
+            data['diagnoses'] = diagnoses
             return render_template('case.html',
                                    title=case_id,
                                    username=username,

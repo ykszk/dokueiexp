@@ -119,7 +119,8 @@ textarea {
 	width: 100%;
 	margin: .5em 0 .5em;
 	padding: .5em;
-	min-height: 10em;
+	resize: none;
+	min-height: 1em;
 	font-size: 1.2em;
 }
 

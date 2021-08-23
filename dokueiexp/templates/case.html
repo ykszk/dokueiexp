@@ -24,6 +24,8 @@
               event.returnValue = '';
        }
 
+       let timerID = 0;
+
        function handleCheckButton(obj) {
               obj.classList.remove("noticeme")
               obj.disabled = true
@@ -32,12 +34,18 @@
               const inputs = document.querySelectorAll('input');
               inputs.forEach(e => e.disabled = false)
               document.getElementById('quitButton').disabled = false
-              document.getElementById('diagnosis').disabled = false
               updateFixButton()
               startTime = Date.now();
               setTime(elapsed_time);
-              setInterval(updateTime, 1000);
+              timerID = setInterval(updateTime, 1000);
               window.addEventListener('beforeunload', handlePageUnload);
+       }
+
+       function handleStopButton(obj) {
+              obj.disabled = true
+              document.querySelectorAll('input').forEach(e => e.disabled = true);
+              document.querySelectorAll('textarea').forEach(e => e.disabled = false);
+              clearInterval(timerID);
        }
 
        function updateTime() {
@@ -76,9 +84,16 @@
 
 <div class="main">
        {% include "sliders.html" %}
+       <div style="padding: 2em 0 2em 0">
+              <button id="stopTimerButton" onClick="handleStopButton(this)" disabled>タイマーを止めて診断を記入する</button>
+       </div>
        <div>
               <h3>診断</h3>
-              <textarea id="diagnosis" disabled>{{data.get("diagnosis","")}}</textarea>
+              <textarea id="diagnosis1" rows="1" disabled>{{data['diagnoses'][0]}}</textarea>
+              <textarea id="diagnosis2" rows="1" disabled>{{data['diagnoses'][1]}}</textarea>
+              <textarea id="diagnosis3" rows="1" disabled>{{data['diagnoses'][2]}}</textarea>
+              <textarea id="diagnosis4" rows="1" disabled>{{data['diagnoses'][3]}}</textarea>
+              <textarea id="diagnosis5" rows="1" disabled>{{data['diagnoses'][4]}}</textarea>
        </div>
 </div>
 {%- endblock %}

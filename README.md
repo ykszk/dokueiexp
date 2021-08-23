@@ -36,12 +36,12 @@ waitress-serve --call dokueiexp:create_app
 
 ### Windows
 ```bat
-dokueiexp\run.bat
+script\run.bat
 ```
 
 ### Linux
 ```sh
-bash dokueiexp/run.sh
+bash script/run.sh
 ```
 
 Optionally add `--host 0.0.0.0` to allow access from other devices
