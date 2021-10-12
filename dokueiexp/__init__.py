@@ -75,6 +75,11 @@ def create_app(test_config=None):
     MIN_DELTA = timedelta(minutes=float(app.config['INTERVAL']))
     print('interval', MIN_DELTA)
 
+    app.permanent = True
+    permanent_session_lifetime = int(os.environ.get('SESSION_LIFETIME', '300'))
+    app.permanent_session_lifetime = timedelta(minutes=permanent_session_lifetime)
+
+
     login_manager = flask_login.LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = 'login'
