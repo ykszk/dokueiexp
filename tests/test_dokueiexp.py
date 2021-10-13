@@ -19,6 +19,7 @@ def client():
         config = dict(USERS_CSV='tests/users.csv',
                       CASE_IDS_TXT='tests/case_ids.txt',
                       ITEMS_CSV=ITEMS_CSV,
+                      DIAGNOSIS_CSV='tests/diagnosis.csv',
                       REF_DATA_CSV='tests/reference.csv',
                       INTERVAL=str(INTERVAL_SEC / 60),
                       RECORD_DB='sqlite:///{}'.format(db_filename))
