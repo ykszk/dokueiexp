@@ -204,6 +204,13 @@ button {
 	border-radius: .1em;
 }
 
+ul.diagnosis {
+	list-style: none;
+}
+
+select {
+	padding: .5em;
+}
 /* Initial slider */
 
 input[type=range].notset::-webkit-slider-thumb {

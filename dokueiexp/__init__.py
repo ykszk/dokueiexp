@@ -61,6 +61,7 @@ def create_app(test_config=None):
         USERS_CSV=os.environ.get('USERS_CSV', 'users.csv'),
         CASE_IDS_TXT=os.environ.get('CASE_IDS_TXT', 'case_ids.txt'),
         ITEMS_CSV=os.environ.get('ITEMS_CSV', 'items.csv'),
+        DIAGNOSIS_CSV=os.environ.get('DIAGNOSIS_CSV', 'diagnosis.csv'),
         REF_DATA_CSV=os.environ.get('REF_DATA_CSV', 'reference.csv'),
         INTERVAL=os.environ.get('INTERVAL', '1'),
         RECORD_DB=os.environ.get('RECORD_DB', 'sqlite:///records.sqlite3'))
@@ -77,8 +78,8 @@ def create_app(test_config=None):
 
     app.permanent = True
     permanent_session_lifetime = int(os.environ.get('SESSION_LIFETIME', '300'))
-    app.permanent_session_lifetime = timedelta(minutes=permanent_session_lifetime)
-
+    app.permanent_session_lifetime = timedelta(
+        minutes=permanent_session_lifetime)
 
     login_manager = flask_login.LoginManager()
     login_manager.init_app(app)
@@ -98,6 +99,8 @@ def create_app(test_config=None):
 
     df_items = pd.read_csv(app.config['ITEMS_CSV'], encoding='cp932')
     print(len(df_items), 'items found.')
+    df_diagnosis = pd.read_csv(app.config['DIAGNOSIS_CSV'], encoding='cp932')
+    print(len(df_diagnosis), 'diagnosis items found.')
     slider_groups = {}
     for group, df_group in df_items.groupby('group', sort=False):
         slider_groups[group] = df_group.apply(
@@ -284,7 +287,6 @@ def create_app(test_config=None):
 
             with db.new_session() as sess:
                 rec = db.get_record(username, case_id, ai, sess)
-            diagnoses = ['', '', '', '', '']
             if rec:
                 data = json.loads(rec.data.decode('utf8'))
                 completed = rec.completed
@@ -292,10 +294,6 @@ def create_app(test_config=None):
                     flask.flash('{}はすでに確定しています。'.format(case_id), 'failed')
                     return flask.redirect('/')
                 elapsed_time = rec.elapsed_time
-                if 'diagnosis' in data:
-                    ds = data['diagnosis'].split('|')
-                    for i in range(len(ds)):
-                        diagnoses[i] = ds[i]
             else:
                 data = {}
                 completed = False
@@ -304,7 +302,6 @@ def create_app(test_config=None):
                 ref_data = ref_dict[case_id]
             else:
                 ref_data = {}
-            data['diagnoses'] = diagnoses
             return render_template('case.html',
                                    title=case_id,
                                    username=username,
@@ -312,6 +309,7 @@ def create_app(test_config=None):
                                    completed=completed,
                                    elapsed_time=elapsed_time,
                                    slider_groups=slider_groups,
+                                   diagnosis_items=df_diagnosis,
                                    ref_data=ref_data,
                                    data=data,
                                    read_only=read_only)
