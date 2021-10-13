@@ -4,6 +4,7 @@ from collections import namedtuple
 import tempfile
 from functools import wraps
 from datetime import datetime, timedelta
+import random
 
 import flask
 from flask import render_template
@@ -84,6 +85,8 @@ def create_app(test_config=None):
     login_manager = flask_login.LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = 'login'
+
+    rng_seeds = {}
 
     df_users = pd.read_csv(app.config['USERS_CSV'])
     users = {
@@ -192,9 +195,11 @@ def create_app(test_config=None):
         if username not in users:
             flask.flash('User: {} not found.'.format(username), 'failed')
             return flask.redirect('/')
-        return user_dashboard(username, '{}のダッシュボード'.format(username))
+        return user_dashboard(username,
+                              '{}のダッシュボード'.format(username),
+                              admin=True)
 
-    def user_dashboard(username, title='ダッシュボード'):
+    def user_dashboard(username, title='ダッシュボード', admin=False):
         with db.new_session() as sess:
             recs = sess.query(db.Record).filter_by(username=username, ai=False)
             rec_dict = {r.case_id: r for r in recs}
@@ -203,10 +208,16 @@ def create_app(test_config=None):
                                                       ai=True)
             ai_rec_dict = {r.case_id: r for r in ai_recs}
             ai_n_done = sum([1 for r in ai_rec_dict.values() if r.completed])
+        if admin:
+            shuffled_case_ids = case_ids
+        else:
+            seed = rng_seeds.get(username, 0)
+            random.seed(seed)
+            shuffled_case_ids = random.sample(case_ids, len(case_ids))
         return render_template('index.html',
                                title=title,
                                username=username,
-                               case_ids=case_ids,
+                               case_ids=shuffled_case_ids,
                                progress='{}/{}, {}/{}'.format(
                                    n_done, len(case_ids), ai_n_done,
                                    len(case_ids)),
@@ -251,6 +262,7 @@ def create_app(test_config=None):
             if flask.request.form['password'] == users[username]['password']:
                 user = User(username)
                 flask_login.login_user(user)
+                rng_seeds[username] = random.randint(0, 10000)
                 next_url = flask.request.args.get('next')
                 if next_url:
                     return flask.redirect(next_url)
