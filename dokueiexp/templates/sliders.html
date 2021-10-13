@@ -42,10 +42,12 @@
               const dones = Array.from(sliders).filter(e => !e.classList.contains('notset'));
               const n_all = sliders.length;
               const n_dones = dones.length;
+              const diagnosis_index = document.getElementById('diagnosis').selectedIndex;
               if (n_all == n_dones) {
-                     document.getElementById("fixButton").disabled = false
-                     document.getElementById('stopTimerButton').disabled = false
                      document.getElementById('diagnosis').disabled = false
+                     if (diagnosis_index!=0) {
+                            document.getElementById("fixButton").disabled = false
+                     }
               }
        }
 
@@ -72,7 +74,6 @@
 {%- endif %}
 {%- for group_name, slider_group in slider_groups.items() %}
 <div class="sliders">
-       <h3>{{group_name}}</h3>
        {%- for slider in slider_group %}
        <div class="grid">
               <label for="{{slider.label_id}}">{{slider.label}}</label>

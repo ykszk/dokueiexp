@@ -41,13 +41,6 @@
               window.addEventListener('beforeunload', handlePageUnload);
        }
 
-       function handleStopButton(obj) {
-              obj.disabled = true
-              document.querySelectorAll('input').forEach(e => e.disabled = true);
-              document.querySelectorAll('textarea').forEach(e => e.disabled = false);
-              clearInterval(timerID);
-       }
-
        function updateTime() {
               setTime(elapsed_time + Math.round((Date.now() - startTime) / 1000));
        }
@@ -84,12 +77,9 @@
 
 <div class="main">
        {% include "sliders.html" %}
-       <div style="padding: 2em 0 2em 0">
-              <button id="stopTimerButton" onClick="handleStopButton(this)" disabled>タイマーを止めて診断を記入する</button>
-       </div>
        <div>
               <h3>診断</h3>
-              <select id="diagnosis" name="diagnosis" disabled>
+              <select id="diagnosis" name="diagnosis" onChange="updateFixButton()" disabled>
                      <option value="-1" disabled selected>選択して下さい</option>
                      {%- for idx, diag in diagnosis_items.iterrows() %}
                      <option value="{{idx}}" {{'selected' if (('diagnosis' in data) and (data['diagnosis']==(idx))) else ''}}>{{diag.get('item')}}: {{diag.get('description')}}</option>

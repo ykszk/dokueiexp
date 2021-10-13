@@ -51,7 +51,7 @@ a:visited {
 }
 
 .grid label {
-	justify-self: center;
+	justify-self: left;
 }
 
 .topbar {
