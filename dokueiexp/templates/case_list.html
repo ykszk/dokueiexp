@@ -7,10 +7,10 @@
 			<td>症例</td>
 			<td>状態</td>
 			<td>読影</td>
-			<td>更新日時</td>
+			<td class="omittable">更新日時</td>
 			<td>w/ AI 状態</td>
 			<td>w/ AI 読影</td>
-			<td>w/ AI 更新日時</td>
+			<td class="omittable">w/ AI 更新日時</td>
 		</tr>
 	</thead>
 	<tbody>
@@ -24,7 +24,7 @@
 			<td>{{case_id}}</td>
 			<td>{{['未','一時保存','完了'][status]}}</td>
 			<td>{%- if status < 2 %} <a href="wo/case/{{case_id}}">✍️</a>{%- endif %}</td>
-			<td>{{records[case_id].last_update.strftime('%m/%d %H:%M') if case_id in records else ''}}
+			<td class="omittable">{{records[case_id].last_update.strftime('%m/%d %H:%M') if case_id in records else ''}}
 			</td>
 
 			<td>{{['未','一時保存','完了'][ai_status]}}</td>
@@ -35,7 +35,7 @@
 					待
 					{%- endif %}
 					{%- endif %}</td>
-			<td>{{ai_records[case_id].last_update.strftime('%m/%d %H:%M') if case_id in ai_records and
+			<td class="omittable">{{ai_records[case_id].last_update.strftime('%m/%d %H:%M') if case_id in ai_records and
 				ai_updated
 				else '' }} </td>
 

@@ -163,8 +163,14 @@ td a {
 .sticky_header thead {
 	position: -webkit-sticky;
 	position: sticky;
-	top: 2em;
+	top: 0;
 	z-index: 2;
+}
+
+@media screen and (max-width: 480px) {
+	table td.omittable {
+		display: none;
+	}
 }
 
 #hideDone1:checked ~ * tr.done1 {
