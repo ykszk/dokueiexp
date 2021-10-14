@@ -156,11 +156,23 @@ tr td {
 	text-align: center;
 }
 
+td a {
+	text-decoration: none;
+}
+
 .sticky_header thead {
 	position: -webkit-sticky;
 	position: sticky;
 	top: 2em;
 	z-index: 2;
+}
+
+#hideDone1:checked ~ * tr.done1 {
+	display: none;
+}
+
+#hideDone2:checked ~ * tr.done2 {
+	display: none;
 }
 
 /* flash messages */

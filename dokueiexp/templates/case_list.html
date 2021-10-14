@@ -1,8 +1,6 @@
-<style>
-	td a {
-		text-decoration: none;
-	}
-</style>
+<div>
+	<input type="checkbox" id="hideDone1"/><label for="hideDone1">1段階完了症例を非表示</label>
+	<input type="checkbox" id="hideDone2"/><label for="hideDone2">2段階完了症例を非表示</label>
 <table class="sticky_header">
 	<thead>
 		<tr>
@@ -17,18 +15,18 @@
 	</thead>
 	<tbody>
 		{%- for case_id in case_ids %}
-		<tr>
+		{%- set status = (2 if records[case_id].completed else 1) if case_id in records else 0 -%}
+		{%- set ai_updated = case_id in records and case_id in ai_records and ai_records[case_id].elapsed_time > 0 -%}
+		{%- set ai_status = (2 if ai_records[case_id].completed else 1) if case_id in ai_records and
+		ai_updated else 0
+		-%}
+		<tr class="{{'done1' if status==2 else ''}} {{'done2' if ai_status==2 else ''}}">
 			<td>{{case_id}}</td>
-			{%- set status = (2 if records[case_id].completed else 1) if case_id in records else 0 -%}
 			<td>{{['未','一時保存','完了'][status]}}</td>
 			<td>{%- if status < 2 %} <a href="wo/case/{{case_id}}">✍️</a>{%- endif %}</td>
 			<td>{{records[case_id].last_update.strftime('%m/%d %H:%M') if case_id in records else ''}}
 			</td>
 
-			{%- set ai_updated = case_id in records and case_id in ai_records and ai_records[case_id].elapsed_time > 0 -%}
-			{%- set ai_status = (2 if ai_records[case_id].completed else 1) if case_id in ai_records and
-			ai_updated else 0
-			-%}
 			<td>{{['未','一時保存','完了'][ai_status]}}</td>
 			<td>{%- if status==2 and ai_status < 2 %} {%- if case_id in records and case_id in ai_records
 					and (now-records[case_id].last_update)> min_delta%}
@@ -37,7 +35,7 @@
 					待
 					{%- endif %}
 					{%- endif %}</td>
-			<td>{{ai_records[case_id].last_update.strftime('%Y/%m/%d %H:%M') if case_id in ai_records and
+			<td>{{ai_records[case_id].last_update.strftime('%m/%d %H:%M') if case_id in ai_records and
 				ai_updated
 				else '' }} </td>
 
@@ -45,3 +43,4 @@
 		{%- endfor %}
 	</tbody>
 </table>
+</div>
