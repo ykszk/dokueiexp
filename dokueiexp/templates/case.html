@@ -82,12 +82,12 @@
               <select id="diagnosis" name="diagnosis" onChange="updateFixButton()" disabled>
                      <option value="-1" disabled selected>選択して下さい</option>
                      {%- for idx, diag in diagnosis_items.iterrows() %}
-                     <option value="{{idx}}" {{'selected' if (('diagnosis' in data) and (data['diagnosis']==(idx))) else ''}}>{{diag.get('item')}}: {{diag.get('description')}}</option>
+                     <option value="{{idx}}" {{'selected' if (('diagnosis' in data) and (data['diagnosis']==(idx))) else ''}}>{{diag.get('item')}}</option>
                      {%- endfor %}
               </select>
               <ul class='diagnosis'>
                      {%- for _, diag in diagnosis_items.iterrows() %}
-                     <li>{{diag.get('item')}}: {{diag.get('description')}}</li>
+                     <li>{{diag.get('description')}}</li>
                      {%- endfor %}
               </ul>
        </div>

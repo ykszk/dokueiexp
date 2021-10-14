@@ -156,6 +156,13 @@ tr td {
 	text-align: center;
 }
 
+.sticky_header thead {
+	position: -webkit-sticky;
+	position: sticky;
+	top: 2em;
+	z-index: 2;
+}
+
 /* flash messages */
 
 div.flashes {
@@ -205,6 +212,7 @@ button {
 
 ul.diagnosis {
 	list-style: none;
+	padding-inline-start: .5em;
 }
 
 select {
