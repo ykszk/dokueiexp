@@ -71,7 +71,7 @@ def test_user(client):
     rv = client.get('/', follow_redirects=True)
     assert b'0/4' in rv.data
     assert '未'.encode('utf8') in rv.data
-    assert '完了'.encode('utf8') not in rv.data
+    assert '<td>完了</td>'.encode('utf8') not in rv.data
 
     # set one
     rv = client.put('/wo/case/Case001',
@@ -132,7 +132,7 @@ def test_user(client):
     rv = client.get('/', follow_redirects=True)
     assert b'1/4, 0/4' in rv.data
     assert '未'.encode('utf8') in rv.data
-    assert '完了'.encode('utf8') in rv.data
+    assert '<td>完了</td>'.encode('utf8') in rv.data
 
     rv = client.get('/wo/case/Case001', follow_redirects=True)
     assert 'すでに確定しています。'.encode('utf8') in rv.data
