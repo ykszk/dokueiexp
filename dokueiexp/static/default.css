@@ -48,6 +48,7 @@ a:visited {
 	grid-template-rows: auto 1fr;
 	align-items: center;
 	grid-template-columns: 2fr 1fr 7fr;
+	margin-bottom: 1em;
 }
 
 .grid label {
