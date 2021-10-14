@@ -1,0 +1,12 @@
+[Unit]
+Description=dokueiexp
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/home/suzuki/dokueiexp
+ExecStart=bash /home/suzuki/dokueiexp/script/deploy.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
