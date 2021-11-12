@@ -184,9 +184,10 @@ def create_app(test_config=None):
             temp.close()
             with db.new_session() as sess:
                 db.to_csv(temp.name, sess)
-            return flask.send_file(temp.name, as_attachment = True, \
-        attachment_filename = 'database.csv', \
-        mimetype = 'text/csv')
+            return flask.send_file(temp.name,
+                                   as_attachment=True,
+                                   attachment_filename='database.csv',
+                                   mimetype='text/csv')
 
     @app.route('/user/<username>/')
     @login_required
@@ -214,16 +215,17 @@ def create_app(test_config=None):
             seed = rng_seeds.get(username, 0)
             random.seed(seed)
             shuffled_case_ids = random.sample(case_ids, len(case_ids))
+        progress = '{}/{}, {}/{}'.format(n_done, len(case_ids), ai_n_done,
+                                         len(case_ids))
         return render_template('index.html',
                                title=title,
                                username=username,
                                case_ids=shuffled_case_ids,
-                               progress='{}/{}, {}/{}'.format(
-                                   n_done, len(case_ids), ai_n_done,
-                                   len(case_ids)),
+                               progress=progress,
                                records=rec_dict,
                                ai_records=ai_rec_dict,
                                now=datetime.now(),
+                               admin=admin,
                                min_delta=MIN_DELTA)
 
     @app.route('/user/<username>/<w_wo>/case/<case_id>')
@@ -369,6 +371,20 @@ def create_app(test_config=None):
                     db.update_record(username, case_id, data, 0, True, False,
                                      sess)
                 return {'result': 'success'}, 200
+        else:
+            return {'result': 'failure', 'reason': 'case_id not found'}, 404
+
+    @app.route('/user/<username>/<w_wo>/case/<case_id>/unfix', methods=['PUT'])
+    @login_required
+    @admin_required
+    def unfix_case(username, w_wo, case_id):
+        is_ai = w_wo == 'w'
+        if case_id in case_ids:
+            with db.new_session() as sess:
+                record = db.get_record(username, case_id, is_ai, sess)
+                db.update_record(username, case_id, record.data,
+                                 record.elapsed_time, is_ai, False, sess)
+            return {'result': 'success'}, 200
         else:
             return {'result': 'failure', 'reason': 'case_id not found'}, 404
 

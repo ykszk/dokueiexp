@@ -1,3 +1,20 @@
+{%- if admin %}
+<script>
+	function unfix_record(url) {
+		fetch(url, {
+			method: 'PUT'
+		}).then(response => {return response.json()}).then(data => {
+			if (data.result=="success") {
+				location.reload();
+			} else {
+				alert(data.reason);
+			}
+		}).catch(data => {
+			alert.log(data);
+		});
+	}
+</script>
+{%- endif %}
 <div>
 	<input type="checkbox" id="hideDone1"/><label for="hideDone1">1段階完了症例を非表示</label>
 	<input type="checkbox" id="hideDone2"/><label for="hideDone2">2段階完了症例を非表示</label>
@@ -8,9 +25,11 @@
 			<td>状態</td>
 			<td>読影</td>
 			<td class="omittable">更新日時</td>
+			{%- if admin %}<td>ロック解除</td>{%- endif %}
 			<td>w/ AI 状態</td>
 			<td>w/ AI 読影</td>
 			<td class="omittable">w/ AI 更新日時</td>
+			{%- if admin %}<td>ロック解除</td>{%- endif %}
 		</tr>
 	</thead>
 	<tbody>
@@ -26,6 +45,7 @@
 			<td>{%- if status < 2 %} <a href="wo/case/{{case_id}}">✍️</a>{%- endif %}</td>
 			<td class="omittable">{{records[case_id].last_update.strftime('%m/%d %H:%M') if case_id in records else ''}}
 			</td>
+			{%- if admin %}<td>{%- if status >= 2 %}<button onClick='unfix_record("wo/case/{{case_id}}/unfix")'>解除</button>{%- endif %}</td>{%- endif %}
 
 			<td>{{['未','一時保存','完了'][ai_status]}}</td>
 			<td>{%- if status==2 and ai_status < 2 %} {%- if case_id in records and case_id in ai_records
@@ -38,6 +58,7 @@
 			<td class="omittable">{{ai_records[case_id].last_update.strftime('%m/%d %H:%M') if case_id in ai_records and
 				ai_updated
 				else '' }} </td>
+			{%- if admin %}<td>{%- if ai_status >= 2 %}<button onClick='unfix_record("w/case/{{case_id}}/unfix")'>解除</button>{%- endif %}</td>{%- endif %}
 
 		</tr>
 		{%- endfor %}
