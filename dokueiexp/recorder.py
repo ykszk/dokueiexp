@@ -92,3 +92,57 @@ class RecordDB():
 
         df = pd.DataFrame(rows)
         df.to_csv(filename, index=False, encoding='cp932')
+
+    def from_csv(self, filename, sess=None):
+        if sess is None:
+            sess = self.session
+        df = pd.read_csv(filename, encoding='cp932')
+        for _, row in df.iterrows():
+            record = self.Record(row.get('username'), str(row.get('case_id')),
+                                 row.get('data'), int(row.get('elapsed_time')),
+                                 bool(row.get('ai')),
+                                 bool(row.get('completed')))
+            record.last_update = datetime.datetime.fromisoformat(
+                row.get('last_update'))
+            sess.add(instance=record)
+        sess.commit()
+
+
+def main():
+    import argparse
+    from pathlib import Path
+    parser = argparse.ArgumentParser(
+        description='Convert between sqlite3 database and csv file.')
+    parser.add_argument('input',
+                        help='Input sqlite3/csv filename:',
+                        metavar='<input>')
+    parser.add_argument('output',
+                        help='Output sqlite3/csv filename',
+                        metavar='<output>')
+
+    args = parser.parse_args()
+
+    in_filename = Path(args.input)
+    out_filename = Path(args.output)
+
+    if (in_filename.suffix == '.csv'
+            and out_filename.suffix == '.sqlite3'):  # csv -> db
+        if (out_filename.exists()):
+            print(out_filename, ' already exists')
+            return 1
+        db = RecordDB('sqlite:///' + args.output.replace('\\', '/'))
+        db.from_csv(args.input)
+
+    elif (in_filename.suffix == '.sqlite3'
+          and out_filename.suffix == '.csv'):  # db -> csv
+        db = RecordDB('sqlite:///' + args.input.replace('\\', '/'))
+        db.to_csv(args.output)
+    else:
+        print('Invalid input output combination')
+        return 1
+    return 0
+
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main())
