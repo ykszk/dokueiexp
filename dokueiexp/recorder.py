@@ -3,7 +3,7 @@ import json
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Boolean, String, DateTime, Integer
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session
 
 import datetime
 import pandas as pd
@@ -19,9 +19,8 @@ class RecordDB():
     def __init__(self, filename, echo=False):
         self.engine = sqlalchemy.create_engine(filename, echo=echo)
         Base.metadata.create_all(bind=self.engine)
-        self.session = sessionmaker(bind=self.engine)()
 
-    def new_session(self):
+    def new_session(self) -> Session:
         return Session(self.engine)
 
     class Record(Base):
@@ -34,7 +33,7 @@ class RecordDB():
         ai = Column(Boolean(), primary_key=True)
         completed = Column(Boolean())
 
-        def __init__(self, username: str, case_id: str, data: str,
+        def __init__(self, username: str, case_id: str, data,
                      elapsed_time: int, ai: bool, completed: bool):
             self.username = username
             self.case_id = case_id
@@ -54,21 +53,17 @@ class RecordDB():
                         data=json.dumps(data),
                         completed=self.completed)
 
-    def get_record(self, username, case_id, ai, sess=None):
-        if sess is None:
-            sess = self.session
+    def get_record(self, username: str, case_id: str, ai: bool, sess: Session):
         return sess.query(self.Record).get((username, case_id, ai))
 
     def update_record(self,
                       username: str,
                       case_id: str,
-                      data: bytes,
+                      data,
                       elapsed_time: int,
                       ai: bool,
                       completed: bool,
-                      sess=None):
-        if sess is None:
-            sess = self.session
+                      sess: Session):
         record = self.Record(username, case_id, data, elapsed_time, ai,
                              completed)
         match = sess.query(self.Record).get(
@@ -83,9 +78,7 @@ class RecordDB():
             sess.add(instance=record)
             sess.commit()
 
-    def to_csv(self, filename, sess=None):
-        if sess is None:
-            sess = self.session
+    def to_csv(self, filename, sess: Session):
         rows = []
         for r in sess.query(self.Record):
             rows.append(r.to_dict())
@@ -93,9 +86,7 @@ class RecordDB():
         df = pd.DataFrame(rows)
         df.to_csv(filename, index=False, encoding='cp932')
 
-    def from_csv(self, filename, sess=None):
-        if sess is None:
-            sess = self.session
+    def from_csv(self, filename, sess: Session):
         df = pd.read_csv(filename, encoding='cp932')
         for _, row in df.iterrows():
             record = self.Record(row.get('username'), str(row.get('case_id')),
@@ -131,12 +122,14 @@ def main():
             print(out_filename, ' already exists')
             return 1
         db = RecordDB('sqlite:///' + args.output.replace('\\', '/'))
-        db.from_csv(args.input)
+        with db.new_session() as sess:
+            db.from_csv(args.input, sess)
 
     elif (in_filename.suffix == '.sqlite3'
           and out_filename.suffix == '.csv'):  # db -> csv
         db = RecordDB('sqlite:///' + args.input.replace('\\', '/'))
-        db.to_csv(args.output)
+        with db.new_session() as sess:
+            db.to_csv(args.output, sess)
     else:
         print('Invalid input output combination')
         return 1
